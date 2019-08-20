@@ -1,0 +1,63 @@
+version: '3.7'
+services:
+  rabbitmq:
+    container_name: service_rabbitmq
+    image: rabbitmq
+  postgres:
+    container_name: service_postgres
+    image: postgres
+    environment:
+      - POSTGRES_PASSWORD=mysecretpassword
+      - POSTGRES_USER=postgres
+      - PGDATA=/tmp
+    volumes:
+     - ./volumes/postgresql:/var/lib/postgresql/data
+  mongo:
+    container_name: service_mongo
+    image: mongo
+  api:
+    depends_on:
+      - rabbitmq
+      - postgres
+    container_name: service_api
+    build: ./api/
+    restart: on-failure
+    environment:
+      - POSTGRES_URL=postgres
+      - DB_PASSWORD=mysecretpassword
+      - DB_USERNAME=postgres
+      - PORT=3000
+      - rabbitURL=amqp://rabbitmq
+    ports:
+      - 3000:3000
+  logger:
+    depends_on:
+      - rabbitmq
+      - mongo
+    container_name: service_logger
+    build: ./logger/
+    restart: on-failure
+    environment:
+      - rabbitURL=amqp://rabbitmq
+  mailer:
+    depends_on:
+      - rabbitmq
+    container_name: service_mailer
+    build: ./mailer/
+    restart: on-failure
+    environment:
+     - rabbitURL=amqp://rabbitmq
+     - INSTA_CLONE_MAIL_PASS=210319964815162342l
+     - INSTA_CLONE_USER=instcln@gmail.com
+  post-collector:
+    depends_on:
+     - rabbitmq
+     - postgres
+     - mailer
+     - mongo
+    container_name: service_post-collector
+    build: ./post-collector/
+    restart: on-failure
+    environment:
+      - DB_PASSWORD=mysecretpassword
+      - rabbitURL=amqp://rabbitmq

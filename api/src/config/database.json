@@ -1,0 +1,10 @@
+{
+  "dev": {
+    "driver": "pg",
+    "user": {"ENV": "DB_USERNAME"},
+    "password": {"ENV": "DB_PASSWORD"},
+    "host": "localhost",
+    "database": "instagram",
+    "schema": "my_schema"
+  }
+}
